@@ -18,9 +18,13 @@
       console.log('Client is now gone');
     });
 
-    socket.emit('message', {name: 'Tomás Sasovsky'});
-    socket.on('message', function(payload) {
+    socket.on('new-message', function(payload) {
       console.log('Listening: ', payload);
+    });
+
+    socket.on('active-bands', function(bands) {
+      console.clear();
+      console.table(bands);
     });
   </script>
 </body>
