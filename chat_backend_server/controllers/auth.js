@@ -59,7 +59,7 @@ const login = async (req, res = response) => {
 
     res.json({
       ok: true,
-      userDB,
+      user: userDB,
       token
     });
   } catch (error) {
