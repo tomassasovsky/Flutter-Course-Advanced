@@ -1,3 +1,4 @@
+import 'package:chat/services/socket_service.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
@@ -60,6 +61,8 @@ class __FormState extends State<_Form> {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
+    final socketService = Provider.of<SocketService>(context);
+
     register() async {
       FocusScope.of(context).unfocus();
       final registerOK = await authService.register(
@@ -69,6 +72,7 @@ class __FormState extends State<_Form> {
       );
 
       if (registerOK.runtimeType == bool && registerOK) {
+        socketService.connect();
         Navigator.pushReplacementNamed(context, 'users');
       } else {
         showAlert(context, 'Registering failed.', registerOK);

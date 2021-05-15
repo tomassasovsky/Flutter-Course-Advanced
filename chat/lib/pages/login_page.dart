@@ -1,3 +1,4 @@
+import 'package:chat/services/socket_service.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
@@ -59,10 +60,13 @@ class __FormState extends State<_Form> {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
+    final socketService = Provider.of<SocketService>(context);
+
     login() async {
       FocusScope.of(context).unfocus();
       final loginOK = await authService.login(emailController.text.trim(), passwordController.text.trim());
       if (loginOK) {
+        socketService.connect();
         Navigator.pushReplacementNamed(context, 'users');
       } else {
         showAlert(context, 'Login is incorrect.', 'Check your credentials.');
