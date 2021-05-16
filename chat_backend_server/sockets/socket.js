@@ -1,15 +1,22 @@
+const { authenticateJWT } = require('../helpers/jwt');
 const { io } = require('../index');
+const { userConnected, userDisconnected, saveMessage } = require('../controllers/socket');
 
 // Socket Messages
-io.on('connection', client => {
-	console.log('Client is now connected');
+io.on('connection', (client) => {
+	const [valid, uid] = authenticateJWT(client.handshake.headers['x-token']);
 
-	client.on('disconnect', () => {
-		console.log('Client is now disconnected');
+	if (!valid) { return client.disconnect(); }
+
+	userConnected(uid);
+	client.join(uid);
+
+	client.on('personal-message', async (payload) => {
+		await saveMessage(payload);
+		io.to(payload.to).emit('personal-message', payload);
 	});
 
-	// client.on('message', (payload) => {
-	// 	console.log('Message', payload);
-	// 	io.emit('message', { admin: 'New message' });
-	// });
+	client.on('disconnect', () => {
+		userDisconnected(uid);
+	});
 });

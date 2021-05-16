@@ -19,8 +19,6 @@
 			console.log('Connection to server was lost.');
 		});
 
-		socket.emit('message', { nombre: 'Tomás' });
-
 		socket.on('message', function (payload) {
 			console.log('Listening:', payload);
 		});
