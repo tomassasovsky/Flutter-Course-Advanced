@@ -20,7 +20,6 @@ class _LoadingPageState extends State<LoadingPage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
-    print(state);
     if (state == AppLifecycleState.resumed && await Permission.location.isGranted) {
       Navigator.pushReplacementNamed(context, 'map');
     }

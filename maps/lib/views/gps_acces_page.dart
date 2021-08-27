@@ -6,6 +6,8 @@ class GPSAccessPage extends StatefulWidget {
 }
 
 class _GPSAccessPageState extends State<GPSAccessPage> with WidgetsBindingObserver {
+  bool popup = false;
+
   @override
   void initState() {
     super.initState();
@@ -20,8 +22,8 @@ class _GPSAccessPageState extends State<GPSAccessPage> with WidgetsBindingObserv
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.resumed && await Permission.location.isGranted) {
-      Navigator.pushReplacementNamed(context, 'map');
+    if (state == AppLifecycleState.resumed && await Permission.location.isGranted && !popup) {
+      Navigator.pushReplacementNamed(context, 'loading');
     }
   }
 
@@ -48,11 +50,12 @@ class _GPSAccessPageState extends State<GPSAccessPage> with WidgetsBindingObserv
   }
 
   handleGPSPermission(BuildContext context) async {
+    popup = true;
     final PermissionStatus status = await Permission.location.request();
 
     switch (status) {
       case PermissionStatus.granted:
-        Navigator.pushReplacementNamed(context, 'loading');
+        await Navigator.pushReplacementNamed(context, 'loading');
         break;
       case PermissionStatus.denied:
         await Permission.location.request();
@@ -61,5 +64,6 @@ class _GPSAccessPageState extends State<GPSAccessPage> with WidgetsBindingObserv
         await openAppSettings();
         break;
     }
+    popup = false;
   }
 }
