@@ -21,13 +21,15 @@ class _MapPageState extends State<MapPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<LocationBloc, LocationState>(
-        builder: (context, state) => Map(state: state),
-      ),
+      body: Map(),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           LocationButton(),
+          SizedBox(height: 10),
+          ToggleTrackButton(),
+          SizedBox(height: 10),
+          RouteButton(),
         ],
       ),
     );
@@ -35,25 +37,29 @@ class _MapPageState extends State<MapPage> {
 }
 
 class Map extends StatelessWidget {
-  const Map({Key? key, required this.state}) : super(key: key);
-  final LocationState state;
+  const Map({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    if (!state.locationAvailable) {
-      return Center(child: Text('No location available'));
-    }
+    return BlocBuilder<LocationBloc, LocationState>(
+      builder: (context, state) {
+        if (!state.locationAvailable) return Center(child: Text('No location available'));
+        final mapBloc = context.read<MapBloc>();
+        mapBloc.add(MapLocationUpdateEvent(state.location!));
 
-    final CameraPosition cameraPosition = CameraPosition(target: state.location!, zoom: 15);
-    return SafeArea(
-      child: GoogleMap(
-        initialCameraPosition: cameraPosition,
-        onMapCreated: context.read<MapBloc>().initMap,
-        zoomControlsEnabled: false,
-        markers: {
-          Marker(markerId: MarkerId('initial'), position: cameraPosition.target),
-        },
-      ),
+        final CameraPosition cameraPosition = CameraPosition(target: state.location!, zoom: 15);
+        return SafeArea(
+          child: GoogleMap(
+            initialCameraPosition: cameraPosition,
+            onMapCreated: mapBloc.initMap,
+            zoomControlsEnabled: false,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false,
+            polylines: mapBloc.state.polylines.values.toSet(),
+            onCameraMove: (CameraPosition position) => mapBloc.add(MapCameraMoveEvent(position.target)),
+          ),
+        );
+      },
     );
   }
 }
