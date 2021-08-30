@@ -15,9 +15,17 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   MapBloc() : super(MapState());
 
   late final GoogleMapController _mapController;
+
   Polyline _route = Polyline(
     polylineId: PolylineId('route'),
     width: 4,
+    color: Colors.black87,
+  );
+
+  Polyline _destinationRoute = Polyline(
+    polylineId: PolylineId('destination_route'),
+    width: 4,
+    color: Colors.black87,
   );
 
   void initMap(GoogleMapController mapController) {
@@ -42,13 +50,16 @@ class MapBloc extends Bloc<MapEvent, MapState> {
         yield* locationUpdateEvent(event as MapLocationUpdateEvent);
         break;
       case MapToggleDrawHistoryEvent:
-        yield* toggleTrackEvent(event as MapToggleDrawHistoryEvent);
+        yield* toggleDrawHistoryEvent(event as MapToggleDrawHistoryEvent);
         break;
       case MapToggleTrackLocationEvent:
-        toggleTrackLocationEvent(event as MapToggleTrackLocationEvent);
+        yield* toggleTrackLocationEvent(event as MapToggleTrackLocationEvent);
         break;
       case MapCameraMoveEvent:
         yield state.copyWith(mapCenter: (event as MapCameraMoveEvent).location);
+        break;
+      case MapCreateRouteEvent:
+        yield* createRouteEvent(event as MapCreateRouteEvent);
         break;
     }
   }
@@ -59,22 +70,30 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     List<LatLng> points = [...this._route.points, event.location];
     this._route = this._route.copyWith(pointsParam: points);
 
-    Map<String, Polyline> polylines = state.polylines;
+    final polylines = state.polylines;
     polylines['route'] = this._route;
     yield state.copyWith(polylines: polylines);
   }
 
-  Stream<MapState> toggleTrackEvent(MapToggleDrawHistoryEvent event) async* {
-    final draw = state.drawHistory;
-    this._route = this._route.copyWith(colorParam: draw ? Colors.transparent : Colors.black);
+  Stream<MapState> toggleDrawHistoryEvent(MapToggleDrawHistoryEvent event) async* {
+    this._route = this._route.copyWith(colorParam: state.drawHistory ? Colors.transparent : Colors.black87);
 
-    Map<String, Polyline> polylines = state.polylines;
+    final polylines = state.polylines;
     polylines['route'] = this._route;
-    yield state.copyWith(drawHistory: !draw, polylines: polylines);
+    yield state.copyWith(drawHistory: !state.drawHistory, polylines: polylines);
   }
 
   Stream<MapState> toggleTrackLocationEvent(MapToggleTrackLocationEvent event) async* {
     if (!state.trackLocation) cameraTo(_route.points.last);
     yield state.copyWith(trackLocation: !state.trackLocation);
+  }
+
+  Stream<MapState> createRouteEvent(MapCreateRouteEvent event) async* {
+    _destinationRoute = _destinationRoute.copyWith(pointsParam: event.coordinates);
+
+    final polylines = state.polylines;
+    polylines['destination_route'] = this._destinationRoute;
+
+    yield state.copyWith(polylines: polylines);
   }
 }

@@ -21,16 +21,24 @@ class _MapPageState extends State<MapPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Map(),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
+      body: Stack(
         children: [
-          LocationButton(),
-          SizedBox(height: 10),
-          ToggleTrackButton(),
-          SizedBox(height: 10),
-          RouteButton(),
+          Map(),
+          ManualMarker(),
+          Positioned(child: SearchBar(), top: 20),
         ],
+      ),
+      floatingActionButton: FadeInRight(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            LocationButton(),
+            SizedBox(height: 10),
+            ToggleTrackButton(),
+            SizedBox(height: 10),
+            RouteButton(),
+          ],
+        ),
       ),
     );
   }
@@ -42,22 +50,23 @@ class Map extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LocationBloc, LocationState>(
-      builder: (context, state) {
-        if (!state.locationAvailable) return Center(child: Text('No location available'));
-        final mapBloc = context.read<MapBloc>();
-        mapBloc.add(MapLocationUpdateEvent(state.location!));
-
-        final CameraPosition cameraPosition = CameraPosition(target: state.location!, zoom: 15);
-        return SafeArea(
-          child: GoogleMap(
-            initialCameraPosition: cameraPosition,
-            onMapCreated: mapBloc.initMap,
-            zoomControlsEnabled: false,
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            polylines: mapBloc.state.polylines.values.toSet(),
-            onCameraMove: (CameraPosition position) => mapBloc.add(MapCameraMoveEvent(position.target)),
-          ),
+      builder: (context, locationState) {
+        if (!locationState.locationAvailable) return Center(child: Text('No location available'));
+        context.read<MapBloc>().add(MapLocationUpdateEvent(locationState.location!));
+        return BlocBuilder<MapBloc, MapState>(
+          builder: (context, mapState) {
+            return GoogleMap(
+              initialCameraPosition: CameraPosition(target: context.read<LocationBloc>().state.location!, zoom: 15),
+              myLocationEnabled: true,
+              myLocationButtonEnabled: false,
+              zoomControlsEnabled: false,
+              onMapCreated: context.read<MapBloc>().initMap,
+              polylines: mapState.polylines.values.toSet(),
+              onCameraMove: (CameraPosition position) {
+                context.read<MapBloc>().add(MapCameraMoveEvent(position.target));
+              },
+            );
+          },
         );
       },
     );

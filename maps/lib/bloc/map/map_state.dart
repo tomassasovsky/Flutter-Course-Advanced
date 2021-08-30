@@ -8,9 +8,7 @@ class MapState {
     this.trackLocation = false,
     this.mapCenter,
     Map<String, Polyline>? polylines,
-  }) {
-    this.polylines = polylines ?? {};
-  }
+  }) : this.polylines = polylines ?? Map();
 
   final bool mapLoaded;
   final bool drawHistory;
@@ -30,6 +28,7 @@ class MapState {
       drawHistory: drawHistory ?? this.drawHistory,
       trackLocation: trackLocation ?? this.trackLocation,
       mapCenter: mapCenter ?? this.mapCenter,
+      polylines: polylines ?? this.polylines,
     );
   }
 }

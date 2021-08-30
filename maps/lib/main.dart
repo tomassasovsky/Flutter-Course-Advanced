@@ -13,6 +13,7 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => LocationBloc()),
         BlocProvider(create: (context) => MapBloc()),
+        BlocProvider(create: (context) => SearchBloc()),
       ],
       child: MaterialApp(
         title: 'Material App',
