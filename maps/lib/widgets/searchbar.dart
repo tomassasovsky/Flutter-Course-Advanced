@@ -48,10 +48,33 @@ class _SearchBar extends StatelessWidget {
     );
   }
 
-  void handleResult(BuildContext context, SearchResult result) {
+  handleResult(BuildContext context, SearchResult result) async {
+    computatingAlert(context);
     if (result.cancelled) return;
-    if (result.manual) {
-      context.read<SearchBloc>().add(ShowManualMarkerEvent());
+    if (result.manual) context.read<SearchBloc>().add(ShowManualMarkerEvent());
+
+    final trafficService = TrafficService();
+    final mapBloc = context.read<MapBloc>();
+
+    final start = context.read<LocationBloc>().state.location;
+    final finish = result.location;
+
+    if (start != null && finish != null) {
+      final drivingResponse = await trafficService.getCoordinates(start, finish);
+
+      final geometry = drivingResponse.routes[0].geometry;
+      final duration = drivingResponse.routes[0].duration;
+      final distance = drivingResponse.routes[0].distance;
+
+      final points = Poly.decode(encodedString: geometry, precision: 6).decodedCoords;
+      if (points == null) return;
+      final coordinates = points.map((point) => LatLng(point[0].toDouble(), point[1].toDouble())).toList();
+
+      mapBloc.add(MapCreateRouteEvent(coordinates, distance, duration));
+
+      context.read<SearchBloc>().add(HideManualMarkerEvent());
+      context.read<SearchBloc>().add(AddToHistoryEvent(result));
     }
+    Navigator.pop(context);
   }
 }
