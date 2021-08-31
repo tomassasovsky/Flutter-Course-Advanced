@@ -83,8 +83,8 @@ class SearchPlace extends SearchDelegate<SearchResult?> {
                   context,
                   SearchResult(
                     location: LatLng(places[index].center![1], places[index].center![0]),
-                    placeName: places[index].placeName,
-                    description: places[index].text,
+                    placeName: places[index].text,
+                    description: places[index].placeName,
                   )),
             );
           },

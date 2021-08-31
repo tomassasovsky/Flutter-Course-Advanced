@@ -61,6 +61,9 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       case MapCreateRouteEvent:
         yield* createRouteEvent(event as MapCreateRouteEvent);
         break;
+      case MapDeleteRouteEvent:
+        yield* deleteRouteEvent(event as MapDeleteRouteEvent);
+        break;
     }
   }
 
@@ -94,6 +97,47 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     final polylines = state.polylines;
     polylines['destination_route'] = this._destinationRoute;
 
-    yield state.copyWith(polylines: polylines);
+    final markerStart = Marker(
+      markerId: MarkerId('start'),
+      position: event.coordinates.first,
+      infoWindow: InfoWindow(
+        title: 'Start',
+        snippet: 'Duration: ${(event.duration / 60).floor()} min',
+      ),
+    );
+
+    final markerFinish = Marker(
+      markerId: MarkerId('finish'),
+      position: event.coordinates.last,
+      infoWindow: InfoWindow(
+        title: event.placeName ?? 'Finish',
+        snippet: 'Distance: ${(event.distance / 1000).toStringAsPrecision(3)} Km',
+      ),
+    );
+
+    final markers = {
+      ...state.markers,
+      'start': markerStart,
+      'finish': markerFinish,
+    };
+
+    Future.delayed(Duration(milliseconds: 300), () {
+      _mapController.hideMarkerInfoWindow(MarkerId('start'));
+      _mapController.hideMarkerInfoWindow(MarkerId('start'));
+      _mapController.showMarkerInfoWindow(MarkerId('finish'));
+    });
+
+    yield state.copyWith(polylines: polylines, markers: markers);
+  }
+
+  Stream<MapState> deleteRouteEvent(MapDeleteRouteEvent event) async* {
+    _destinationRoute = _destinationRoute.copyWith(pointsParam: []);
+
+    final polylines = state.polylines;
+    polylines['destination_route'] = this._destinationRoute;
+
+    final Map<String, Marker> markers = {};
+
+    yield state.copyWith(polylines: polylines, markers: markers);
   }
 }

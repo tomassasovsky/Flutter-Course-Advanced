@@ -80,16 +80,19 @@ class _Marker extends StatelessWidget {
     final finish = mapBloc.state.mapCenter;
 
     if (start != null && finish != null) {
+      final searchResponse = await trafficService.getPlaceInfo(finish);
       final drivingResponse = await trafficService.getCoordinates(start, finish);
-      final geometry = drivingResponse.routes[0].geometry;
-      final duration = drivingResponse.routes[0].duration;
-      final distance = drivingResponse.routes[0].distance;
+
+      final geometry = drivingResponse.routes.first.geometry;
+      final duration = drivingResponse.routes.first.duration;
+      final distance = drivingResponse.routes.first.distance;
+      final placeName = searchResponse.features?.first.text ?? '';
 
       final points = Poly.decode(encodedString: geometry, precision: 6).decodedCoords;
       if (points == null) return;
       final coordinates = points.map((point) => LatLng(point[0].toDouble(), point[1].toDouble())).toList();
 
-      mapBloc.add(MapCreateRouteEvent(coordinates, distance, duration));
+      mapBloc.add(MapCreateRouteEvent(coordinates, distance, duration, placeName: placeName));
 
       Navigator.pop(context);
       context.read<SearchBloc>().add(HideManualMarkerEvent());

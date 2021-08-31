@@ -63,6 +63,7 @@ class Map extends StatelessWidget {
               compassEnabled: false,
               onMapCreated: context.read<MapBloc>().initMap,
               polylines: mapState.polylines.values.toSet(),
+              markers: mapState.markers.values.toSet(),
               onCameraMove: (CameraPosition position) {
                 context.read<MapBloc>().add(MapCameraMoveEvent(position.target));
               },

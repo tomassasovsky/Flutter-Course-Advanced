@@ -71,6 +71,21 @@ class TrafficService {
     Future.delayed(Duration(milliseconds: 201)).then((_) => timer.cancel());
   }
 
+  Future<SearchResponse> getPlaceInfo(LatLng place) async {
+    final coordinates = '${place.longitude},${place.latitude}';
+    final url = '$_baseUrlGeo/mapbox.places/$coordinates.json';
+
+    final response = await _dio.get(url, queryParameters: {
+      'access_token': _accessToken,
+      'alternatives': 'true',
+      'geometries': 'polyline6',
+      'steps': 'false',
+    });
+
+    final data = SearchResponse.fromJson(json.decode(response.data));
+    return data;
+  }
+
   void dispose() {
     _searchResponseSuggestions.close();
   }
