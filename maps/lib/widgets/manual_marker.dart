@@ -71,8 +71,6 @@ class _Marker extends StatelessWidget {
   }
 
   Future<void> selectPlace(BuildContext context) async {
-    computatingAlert(context);
-
     final trafficService = TrafficService();
     final mapBloc = context.read<MapBloc>();
 
@@ -80,8 +78,10 @@ class _Marker extends StatelessWidget {
     final finish = mapBloc.state.mapCenter;
 
     if (start != null && finish != null) {
+      computatingAlert(context);
       final searchResponse = await trafficService.getPlaceInfo(finish);
       final drivingResponse = await trafficService.getCoordinates(start, finish);
+      Navigator.pop(context);
 
       final geometry = drivingResponse.routes.first.geometry;
       final duration = drivingResponse.routes.first.duration;
@@ -90,11 +90,11 @@ class _Marker extends StatelessWidget {
 
       final points = Poly.decode(encodedString: geometry, precision: 6).decodedCoords;
       if (points == null) return;
+
       final coordinates = points.map((point) => LatLng(point[0].toDouble(), point[1].toDouble())).toList();
 
       mapBloc.add(MapCreateRouteEvent(coordinates, distance, duration, placeName: placeName));
 
-      Navigator.pop(context);
       context.read<SearchBloc>().add(HideManualMarkerEvent());
     }
   }

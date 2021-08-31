@@ -20,7 +20,7 @@ class _SearchBar extends StatelessWidget {
         child: GestureDetector(
           onTap: () async {
             final SearchResult? searchResult = await showSearch<SearchResult?>(context: context, delegate: SearchPlace());
-            if (searchResult != null && !searchResult.cancelled) handleResult(context, searchResult);
+            if (searchResult != null) handleResult(context, searchResult);
           },
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 30),
@@ -58,9 +58,7 @@ class _SearchBar extends StatelessWidget {
   }
 
   handleResult(BuildContext context, SearchResult result) async {
-    computatingAlert(context);
-    if (result.cancelled) return;
-    if (result.manual) context.read<SearchBloc>().add(ShowManualMarkerEvent());
+    if (result.manual) return context.read<SearchBloc>().add(ShowManualMarkerEvent());
 
     final trafficService = TrafficService();
     final mapBloc = context.read<MapBloc>();
@@ -69,8 +67,10 @@ class _SearchBar extends StatelessWidget {
     final finish = result.location;
 
     if (start != null && finish != null) {
+      computatingAlert(context);
       final drivingResponse = await trafficService.getCoordinates(start, finish);
-
+      Navigator.pop(context);
+      
       final geometry = drivingResponse.routes[0].geometry;
       final duration = drivingResponse.routes[0].duration;
       final distance = drivingResponse.routes[0].distance;
@@ -85,6 +85,5 @@ class _SearchBar extends StatelessWidget {
       context.read<SearchBloc>().add(HideManualMarkerEvent());
       context.read<SearchBloc>().add(AddToHistoryEvent(result));
     }
-    Navigator.pop(context);
   }
 }

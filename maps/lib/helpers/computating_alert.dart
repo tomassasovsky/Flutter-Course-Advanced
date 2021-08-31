@@ -1,6 +1,6 @@
 part of 'helpers.dart';
 
-void computatingAlert(BuildContext context) {
+computatingAlert(BuildContext context) async {
   if (Platform.isAndroid) {
     showDialog(
       context: context,

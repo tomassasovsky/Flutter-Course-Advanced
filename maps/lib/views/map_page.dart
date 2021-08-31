@@ -61,6 +61,7 @@ class Map extends StatelessWidget {
               myLocationButtonEnabled: false,
               zoomControlsEnabled: false,
               compassEnabled: false,
+              mapToolbarEnabled: false,
               onMapCreated: context.read<MapBloc>().initMap,
               polylines: mapState.polylines.values.toSet(),
               markers: mapState.markers.values.toSet(),
